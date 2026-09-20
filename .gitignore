@@ -1,0 +1,19 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Output reports
+reports/index.html
+
+# IDE
+.vscode/
+.idea/
+*.swp

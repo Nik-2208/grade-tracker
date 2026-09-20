@@ -1,0 +1,10 @@
+student_id,subject,score,max_score,date
+CS101,Mathematics,95,100,2025-01-15
+CS101,Physics,85,100,2025-01-16
+CS101,Chemistry,92,100,2025-01-17
+CS102,Mathematics,70,70,2025-01-15
+CS102,Physics,70,100,2025-01-16
+CS102,Computer Science,88,100,2025-01-18
+CS103,Mathematics,55,100,2025-01-15
+CS103,Physics,35,100,2025-01-16
+CS103,Chemistry,62,100,2025-01-17
