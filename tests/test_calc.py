@@ -33,6 +33,14 @@ class TestGradeCalculations(unittest.TestCase):
         """Subject average should return None if no entries exist for that subject."""
         self.assertIsNone(subject_average([], "Physics"))
 
+    def test_letter_grade_boundaries(self):
+        """checking letter grade boundaries"""
+        self.assertEqual(letter_grade(90, 100), "A")
+        self.assertEqual(letter_grade(80, 100), "B")
+        self.assertEqual(letter_grade(70, 100), "C")
+        self.assertEqual(letter_grade(60, 100), "D")
+        self.assertEqual(letter_grade(59, 100), "F")
+
 
 if __name__ == "__main__":
     unittest.main()
