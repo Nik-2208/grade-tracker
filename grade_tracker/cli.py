@@ -5,7 +5,7 @@ import csv
 import sys
 from pathlib import Path
 
-from grade_tracker.calc import gpa, letter_grade, subject_average
+from grade_tracker.calc import cgpa, letter_grade, sgpa, subject_average
 from grade_tracker.export import build_html
 
 DEFAULT_DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "grades.csv"
@@ -30,13 +30,15 @@ def load_grades(csv_path=DEFAULT_DATA_PATH):
                     "score": float(row["score"]),
                     "max_score": float(row["max_score"]),
                     "date": row.get("date", "").strip(),
+                    "credits": float(row.get("credits", 3.0)),
+                    "semester": str(row.get("semester", "1")).strip(),
                 })
             except (ValueError, KeyError):
                 continue
     return grades
 
 
-def save_grade(student_id, subject, score, max_score, date, csv_path=DEFAULT_DATA_PATH):
+def save_grade(student_id, subject, score, max_score, date, credits, semester, csv_path=DEFAULT_DATA_PATH):
     """Appends a new grade row to the CSV file."""
     path = Path(csv_path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -45,8 +47,8 @@ def save_grade(student_id, subject, score, max_score, date, csv_path=DEFAULT_DAT
     with open(path, mode="a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         if not file_exists:
-            writer.writerow(["student_id", "subject", "score", "max_score", "date"])
-        writer.writerow([student_id, subject, score, max_score, date])
+            writer.writerow(["student_id", "subject", "score", "max_score", "date", "credits", "semester"])
+        writer.writerow([student_id, subject, score, max_score, date, credits, semester])
 
 
 def cmd_list(args):
@@ -69,14 +71,20 @@ def cmd_summary(args):
         print(f"No records found for student '{args.student_id}'.")
         return
 
-    student_gpa = gpa(grades, args.student_id)
+    student_cgpa = cgpa(grades, args.student_id)
     print(f"Summary for Student: {args.student_id}")
-    print(f"GPA: {student_gpa}")
+    print(f"CGPA: {student_cgpa}")
     print("-" * 50)
-    for g in student_grades:
-        lg = letter_grade(g["score"], g["max_score"])
-        pct = (g["score"] / g["max_score"] * 100) if g["max_score"] > 0 else 0
-        print(f"  {g['subject']:<18}: {g['score']:.1f}/{g['max_score']:.1f} ({pct:.1f}%) -> {lg}")
+    
+    semesters = sorted(list(set(g["semester"] for g in student_grades)))
+    for sem in semesters:
+        sem_grades = [g for g in student_grades if g["semester"] == sem]
+        sem_sgpa = sgpa(grades, args.student_id, sem)
+        print(f"Semester {sem} (SGPA: {sem_sgpa})")
+        for g in sem_grades:
+            lg = letter_grade(g["score"], g["max_score"])
+            pct = (g["score"] / g["max_score"] * 100) if g["max_score"] > 0 else 0
+            print(f"  {g['subject']:<18}: {g['score']:.1f}/{g['max_score']:.1f} ({pct:.1f}%) -> {lg} (Credits: {g['credits']})")
 
 
 def cmd_average(args):
@@ -95,7 +103,7 @@ def cmd_export(args):
 
 
 def cmd_add(args):
-    save_grade(args.student_id, args.subject, args.score, args.max_score, args.date, args.data)
+    save_grade(args.student_id, args.subject, args.score, args.max_score, args.date, args.credits, args.semester, args.data)
     print(f"Added grade for {args.student_id} in {args.subject}.")
 
 
@@ -130,6 +138,8 @@ def main():
     p_add.add_argument("score", type=float, help="Score earned")
     p_add.add_argument("max_score", type=float, help="Maximum possible score")
     p_add.add_argument("date", help="Date (YYYY-MM-DD)")
+    p_add.add_argument("credits", type=float, help="Credits for the subject")
+    p_add.add_argument("semester", help="Semester number")
     p_add.set_defaults(func=cmd_add)
 
     args = parser.parse_args()

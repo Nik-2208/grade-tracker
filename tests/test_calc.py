@@ -1,7 +1,7 @@
 """Unit tests for calculation logic in grade_tracker."""
 
 import unittest
-from grade_tracker.calc import letter_grade, gpa, subject_average
+from grade_tracker.calc import letter_grade, cgpa, sgpa, subject_average
 
 
 class TestGradeCalculations(unittest.TestCase):
@@ -15,14 +15,28 @@ class TestGradeCalculations(unittest.TestCase):
         with self.assertRaises(ValueError):
             letter_grade(50, 0)
 
-    def test_gpa_empty_returns_none(self):
-        """Calculating GPA on an empty list of grades should return None."""
-        self.assertIsNone(gpa([]))
+    def test_cgpa_empty_returns_none(self):
+        """Calculating CGPA on an empty list of grades should return None."""
+        self.assertIsNone(cgpa([]))
 
-    def test_gpa_single_course(self):
-        """Single course with score 95/100 should evaluate to 4.0 GPA."""
-        grades = [{"student_id": "S1", "score": 95, "max_score": 100}]
-        self.assertEqual(gpa(grades, "S1"), 4.0)
+    def test_sgpa_single_course(self):
+        """Single course with score 95/100 should evaluate to 10.0 SGPA (A grade, 10.0 pts)."""
+        grades = [{"student_id": "S1", "score": 95, "max_score": 100, "credits": 3, "semester": 1}]
+        self.assertEqual(sgpa(grades, "S1", 1), 10.0)
+
+    def test_cgpa_worked_example(self):
+        """Worked example for CGPA and SGPA with credits."""
+        grades = [
+            {"student_id": "S1", "score": 95, "max_score": 100, "credits": 4, "semester": 1}, # A -> 10 * 4 = 40
+            {"student_id": "S1", "score": 85, "max_score": 100, "credits": 3, "semester": 1}, # B -> 9 * 3 = 27
+            {"student_id": "S1", "score": 75, "max_score": 100, "credits": 2, "semester": 2}, # C -> 8 * 2 = 16
+        ]
+        # SGPA Sem 1: (40 + 27) / 7 = 67 / 7 = 9.57
+        self.assertEqual(sgpa(grades, "S1", 1), 9.57)
+        # SGPA Sem 2: 16 / 2 = 8.0
+        self.assertEqual(sgpa(grades, "S1", 2), 8.0)
+        # CGPA: (40 + 27 + 16) / 9 = 83 / 9 = 9.22
+        self.assertEqual(cgpa(grades, "S1"), 9.22)
 
     def test_subject_average_single_entry(self):
         """A single grade entry for a subject should return that score as average."""

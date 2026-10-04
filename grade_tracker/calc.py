@@ -1,10 +1,10 @@
 """Calculation module for academic grades, GPA, and averages."""
 
 GRADE_POINTS = {
-    "A": 4.0,
-    "B": 3.0,
-    "C": 2.0,
-    "D": 1.0,
+    "A": 10.0,
+    "B": 9.0,
+    "C": 8.0,
+    "D": 7.0,
     "F": 0.0,
 }
 
@@ -28,21 +28,48 @@ def letter_grade(score, max_score=100):
         return "F"
 
 
-def gpa(grades, student_id=None):
-    """Calculates grade point average on a 4.0 scale.
+def sgpa(grades, student_id=None, semester=None):
+    """Calculates Semester Grade Point Average on a 10.0 scale."""
+    if student_id is not None:
+        grades = [g for g in grades if g.get("student_id") == student_id]
+    if semester is not None:
+        grades = [g for g in grades if str(g.get("semester", "")) == str(semester)]
 
-    Returns None if no matching grades are found.
-    """
+    if not grades:
+        return None
+
+    total_points = 0.0
+    total_credits = 0.0
+    for g in grades:
+        c = g.get("credits", 1.0)
+        pts = GRADE_POINTS.get(letter_grade(g["score"], g["max_score"]), 0.0)
+        total_points += pts * c
+        total_credits += c
+
+    if total_credits == 0:
+        return 0.0
+    return round(total_points / total_credits, 2)
+
+
+def cgpa(grades, student_id=None):
+    """Calculates Cumulative Grade Point Average on a 10.0 scale."""
     if student_id is not None:
         grades = [g for g in grades if g.get("student_id") == student_id]
 
     if not grades:
         return None
 
-    total_points = sum(
-        GRADE_POINTS.get(letter_grade(g["score"], g["max_score"]), 0.0) for g in grades
-    )
-    return round(total_points / len(grades), 1)
+    total_points = 0.0
+    total_credits = 0.0
+    for g in grades:
+        c = g.get("credits", 1.0)
+        pts = GRADE_POINTS.get(letter_grade(g["score"], g["max_score"]), 0.0)
+        total_points += pts * c
+        total_credits += c
+
+    if total_credits == 0:
+        return 0.0
+    return round(total_points / total_credits, 2)
 
 
 def subject_average(grades, subject):

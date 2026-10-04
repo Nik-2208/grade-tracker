@@ -1,7 +1,7 @@
 """HTML report generation module for Grade Tracker."""
 
 from pathlib import Path
-from grade_tracker.calc import gpa, letter_grade
+from grade_tracker.calc import cgpa, letter_grade, sgpa
 
 # Default roster of enrolled students in the batch
 ENROLLED_STUDENTS = ["CS101", "CS102", "CS103", "CS104"]
@@ -17,7 +17,7 @@ def get_enrolled_students(grades):
 
 
 def build_html(grades, output_path="reports/index.html"):
-    """Generates an HTML report summarizing student grades and GPA."""
+    """Generates an HTML report summarizing student grades and CGPA."""
     out_file = Path(output_path)
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -26,28 +26,35 @@ def build_html(grades, output_path="reports/index.html"):
 
     for sid in student_ids:
         student_grades = [g for g in grades if g.get("student_id") == sid]
-        student_gpa = gpa(grades, student_id=sid)
+        student_cgpa = cgpa(grades, student_id=sid)
 
+        semesters = sorted(list(set(g["semester"] for g in student_grades)))
         rows = []
-        for g in student_grades:
-            grade_char = letter_grade(g["score"], g["max_score"])
-            pct = (g["score"] / g["max_score"] * 100) if g["max_score"] > 0 else 0
-            rows.append(
-                f"<tr><td>{g['subject']}</td><td>{g['score']} / {g['max_score']} ({pct:.1f}%)</td>"
-                f"<td class='badge'>{grade_char}</td><td>{g.get('date', '')}</td></tr>"
-            )
+        for sem in semesters:
+            sem_grades = [g for g in student_grades if g["semester"] == sem]
+            sem_sgpa = sgpa(grades, student_id=sid, semester=sem)
+            
+            rows.append(f"<tr class='semester-row'><td colspan='5'>Semester {sem} (SGPA: {sem_sgpa})</td></tr>")
+            
+            for g in sem_grades:
+                grade_char = letter_grade(g["score"], g["max_score"])
+                pct = (g["score"] / g["max_score"] * 100) if g["max_score"] > 0 else 0
+                rows.append(
+                    f"<tr><td>{g['subject']}</td><td>{g.get('credits', 3.0)}</td><td>{g['score']} / {g['max_score']} ({pct:.1f}%)</td>"
+                    f"<td><span class='badge'>{grade_char}</span></td><td>{g.get('date', '')}</td></tr>"
+                )
 
-        rows_html = "".join(rows) if rows else "<tr><td colspan='4' class='empty'>No records found</td></tr>"
+        rows_html = "".join(rows) if rows else "<tr><td colspan='5' class='empty'>No records found</td></tr>"
 
         card = f"""
         <div class="card">
             <div class="card-header">
                 <h2>Student: {sid}</h2>
-                <span class="gpa-tag">GPA: {student_gpa}</span>
+                <span class="gpa-tag">CGPA: {student_cgpa}</span>
             </div>
             <table>
                 <thead>
-                    <tr><th>Subject</th><th>Score</th><th>Grade</th><th>Date</th></tr>
+                    <tr><th>Subject</th><th>Credits</th><th>Score</th><th>Grade</th><th>Date</th></tr>
                 </thead>
                 <tbody>
                     {rows_html}
@@ -138,6 +145,12 @@ def build_html(grades, output_path="reports/index.html"):
             border-bottom: 1px solid var(--surface-border);
         }}
         th {{ color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }}
+        .semester-row td {{
+            background-color: rgba(56, 189, 248, 0.05);
+            font-weight: 600;
+            color: var(--primary);
+            padding: 0.4rem 0.75rem;
+        }}
         .badge {{
             display: inline-block;
             padding: 0.2rem 0.5rem;
