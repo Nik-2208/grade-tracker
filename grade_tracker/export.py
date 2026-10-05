@@ -28,10 +28,10 @@ def build_html(grades, output_path="reports/index.html"):
         student_grades = [g for g in grades if g.get("student_id") == sid]
         student_cgpa = cgpa(grades, student_id=sid)
 
-        semesters = sorted(list(set(g["semester"] for g in student_grades)))
+        semesters = sorted(list(set(g.get("semester", "1") for g in student_grades)))
         rows = []
         for sem in semesters:
-            sem_grades = [g for g in student_grades if g["semester"] == sem]
+            sem_grades = [g for g in student_grades if g.get("semester", "1") == sem]
             sem_sgpa = sgpa(grades, student_id=sid, semester=sem)
             
             rows.append(f"<tr class='semester-row'><td colspan='5'>Semester {sem} (SGPA: {sem_sgpa})</td></tr>")
