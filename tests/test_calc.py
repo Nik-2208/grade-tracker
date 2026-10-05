@@ -47,6 +47,34 @@ class TestGradeCalculations(unittest.TestCase):
         """Subject average should return None if no entries exist for that subject."""
         self.assertIsNone(subject_average([], "Physics"))
 
+    def test_subject_average_mixed_max_scores(self):
+        """Grades with different maximum scores should be averaged as percentages.
+
+        Regression test for Issue #5: 35/50 and 70/100 are both 70%, so the
+        average must be 70.0, not the raw-score average of 52.5.
+        """
+        grades = [
+            {"subject": "Physics", "score": 35, "max_score": 50},
+            {"subject": "Physics", "score": 70, "max_score": 100},
+        ]
+        self.assertEqual(subject_average(grades, "Physics"), 70.0)
+
+    def test_subject_average_same_max_score(self):
+        """When every grade shares a maximum score the average percentage matches the raw average."""
+        grades = [
+            {"subject": "Mathematics", "score": 80, "max_score": 100},
+            {"subject": "Mathematics", "score": 90, "max_score": 100},
+        ]
+        self.assertEqual(subject_average(grades, "Mathematics"), 85.0)
+
+    def test_subject_average_different_percentages(self):
+        """Percentages that differ should be averaged, not raw scores."""
+        grades = [
+            {"subject": "Chemistry", "score": 45, "max_score": 50},   # 90%
+            {"subject": "Chemistry", "score": 40, "max_score": 100},  # 40%
+        ]
+        self.assertEqual(subject_average(grades, "Chemistry"), 65.0)
+
     def test_letter_grade_boundaries(self):
         """checking letter grade boundaries"""
         self.assertEqual(letter_grade(90, 100), "A")
