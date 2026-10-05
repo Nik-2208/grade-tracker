@@ -21,7 +21,7 @@ On Windows, use `python` instead of `python3`.
 | `list` | Every mark, with its letter grade |
 | `summary <student_id>` | One student's marks and GPA |
 | `average <subject>` | The class average for a subject |
-| `add <student_id> <subject> <score> <max_score> <date>` | Adds a mark |
+| `add <student_id> <subject> <score> <max_score> <date> <credits> <semester>` | Adds a mark |
 | `export [--output path]` | Writes an HTML report, `reports/index.html` by default |
 
 ## How it's supposed to work
