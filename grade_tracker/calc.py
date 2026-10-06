@@ -73,7 +73,10 @@ def cgpa(grades, student_id=None):
 
 
 def subject_average(grades, subject):
-    """Calculates the average score for a given subject.
+    """Calculates the average percentage for a given subject.
+
+    Each grade is converted to a percentage first, so marks out of
+    different maximum scores compare fairly (35/50 and 70/100 are both 70%).
 
     Returns None if no entries exist for the subject.
     """
@@ -85,5 +88,5 @@ def subject_average(grades, subject):
     if not matching:
         return None
 
-    raw_scores = [g["score"] for g in matching]
-    return round(sum(raw_scores) / len(raw_scores), 2)
+    percentages = [(g["score"] / g["max_score"]) * 100 for g in matching]
+    return round(sum(percentages) / len(percentages), 2)
