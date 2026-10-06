@@ -5,7 +5,7 @@ import csv
 import sys
 from pathlib import Path
 
-from grade_tracker.calc import cgpa, letter_grade, sgpa, subject_average
+from grade_tracker.calc import cgpa, letter_grade, sgpa, subject_average, validate_grade
 from grade_tracker.export import build_html
 
 DEFAULT_DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "grades.csv"
@@ -103,6 +103,11 @@ def cmd_export(args):
 
 
 def cmd_add(args):
+    try:
+        validate_grade(args.score, args.max_score, args.date)
+    except ValueError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        raise SystemExit(2) from exc
     save_grade(args.student_id, args.subject, args.score, args.max_score, args.date, args.credits, args.semester, args.data)
     print(f"Added grade for {args.student_id} in {args.subject}.")
 
