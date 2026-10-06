@@ -1,5 +1,9 @@
 """Calculation module for academic grades, GPA, and averages."""
 
+from datetime import date
+import re
+
+
 GRADE_POINTS = {
     "A": 10.0,
     "B": 9.0,
@@ -7,6 +11,24 @@ GRADE_POINTS = {
     "D": 7.0,
     "F": 0.0,
 }
+
+
+def validate_grade(score, max_score, date_value):
+    """Validate a grade before it can be persisted.
+
+    Raises:
+        ValueError: If the score range or calendar date is invalid.
+    """
+    if max_score <= 0:
+        raise ValueError("max_score must be greater than 0")
+    if not 0 <= score <= max_score:
+        raise ValueError("score must be between 0 and max_score")
+    if not isinstance(date_value, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_value):
+        raise ValueError("date must use YYYY-MM-DD format")
+    try:
+        date.fromisoformat(date_value)
+    except ValueError as exc:
+        raise ValueError("date must be a valid calendar date in YYYY-MM-DD format") from exc
 
 
 def letter_grade(score, max_score=100):
